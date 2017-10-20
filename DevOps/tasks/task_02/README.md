@@ -15,7 +15,7 @@ src\main\resources\
 3) Open a terminal located in the root folder of the project
 4) Execute the command:
 ```
-gradle bootRun
+./gradlew bootRun
 ```
 5) The service is up in: http://localhost:8080
 
