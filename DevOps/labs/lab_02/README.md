@@ -1,9 +1,9 @@
-# Vagrantfile to manage OpenStack Cloud instance (Cointinuous Integration Server)
+# Vagrantfile to manage OpenStack Cloud instance (Deployment Server)
 
 This Vagrantfile can manage a OpenStack Cloud Instance using the OpenStack provider and Vagrant-env plugins. Also this vagrant file perform the installation of:
-* Sonarqube (Docker container)
-* GoCD (Docker container)
-* Jenkins BlueOcean (Docker container)
+* Oracle JDK 8u151
+* NodeJs 6.11
+* MongoDB (Docker container)
 
 ### Requirements
 * Vagrant
