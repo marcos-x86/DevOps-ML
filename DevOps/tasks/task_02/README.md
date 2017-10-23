@@ -1,35 +1,57 @@
-# movies-restapi
-Basic Java Spring Boot Rest API implementation using MongoDB for data persistence
+[![Build Status](https://travis-ci.org/marcos-x86/movies-restapi-java.png?branch=develop)](https://travis-ci.org/marcos-x86/movies-restapi-java)
+[![codecov](https://codecov.io/gh/marcos-x86/movies-restapi-java/branch/develop/graph/badge.svg)](https://codecov.io/gh/marcos-x86/movies-restapi-java)
+
+# movies-restapi-java
+Basic Java Spring Boot Rest API implementation using MongoDB for data persistence.
 
 ### Requirements
 * JDK 1.8
-* Gradle 4.x
+* Gradle 3.x
 * MongoDB 3.x
 
 ### Execution steps
-1) Clone the repository
-2) Edit the application.properties file according to your environment parameters. The file is located in (example included):
+1) Clone the repository.
+2) Edit the application.properties file according to your environment parameters (example included).
+3) Open a terminal located in the root folder of the project.
+4) Build the project with the following command:
+
+Unix based systems:
 ```
-src\main\resources\
+./gradlew clean build
 ```
-3) Open a terminal located in the root folder of the project
-4) Execute the command:
+Windows:
 ```
-gradle bootRun
+gradlew.bat clean build
 ```
-5) The service is up in: http://localhost:8080
+
+5) Run the service with the following command:
+
+Unix based systems:
+```
+./gradlew bootRun
+```
+Windows:
+```
+gradlew.bat bootRun
+```
+6) Or Run the service with the following command:
+```
+java -jar build/libs/movies-restapi-java-0.1.jar
+```
+7) The service is up in: http://localhost:{port} ({port} is the port designed in the application.properties file)
 
 ### Endpoints information
 This RestAPI has one basic endpoint that supports GET, POST, PUT and DELETE request methods.
 
 1) GET all movies Request:
-Endpoint: http://localhost:8080/movies
+Endpoint: http://localhost:{port}/api/v1/movies
 
 2) GET movie by Id Request:
-Endpoint: http://localhost:8080/movies/{id}
+Endpoint: http://localhost:{port}/api/v1/movies/{id}
 
 3) POST movie Request:
-Endpoint: http://localhost:8080/movies
+Endpoint: http://localhost:{port}/api/v1/movies
+
 Request body example:
 ```
 {
@@ -51,7 +73,8 @@ Response body example:
 ```
 
 4) PUT movie Request:
-Endpoint: http://localhost:8080/movies/{id}
+Endpoint: http://localhost:{port}/api/v1/movies/{id}
+
 Request body example:
 ```
 {
@@ -73,4 +96,5 @@ Request body example:
 ```
 
 5) DELETE movie Request:
-Endpoint: http://localhost:8080/movies/{id}
+
+Endpoint: http://localhost:{port}/api/v1/movies/{id}
