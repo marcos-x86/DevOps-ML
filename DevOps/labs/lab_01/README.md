@@ -1,4 +1,4 @@
-# Vagrantfile to manage OpenStack Cloud instance (Cointinuous Integration Server)
+# Vagrantfile to manage OpenStack Cloud instance (Continuous Integration Server)
 
 This Vagrantfile can manage a OpenStack Cloud Instance using the OpenStack provider and Vagrant-env plugins. Also this vagrant file perform the installation of:
 * Sonarqube (Docker container)
