@@ -24,6 +24,15 @@ services:
     volumes:
       - ~/jenkins_home:/var/jenkins_home
 
+  sonarqube:
+    image: "sonarqube:5.6.6-alpine"
+    ports:
+      - "9000:9000"
+      - "9092:9092"
+    links:
+      - gocd_agent
+      - jenkins_blue_ocean
+
 networks:
   default:
     driver: bridge
