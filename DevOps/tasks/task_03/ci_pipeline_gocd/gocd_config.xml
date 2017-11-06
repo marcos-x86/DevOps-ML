@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cruise xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cruise-config.xsd" schemaVersion="90">
+  <server artifactsdir="artifacts" agentAutoRegisterKey="a5227bf5-4e9d-4154-aee8-5a0c53efe9cd" commandRepositoryLocation="default" serverId="3e7e1e84-6889-4bfb-a21f-c587f31466f8" />
+  <pipelines group="defaultGroup">
+    <pipeline name="Ixplora-CI-API" labeltemplate="0.8.2.${COUNT}" isLocked="true">
+      <environmentvariables>
+        <variable name="ixplora_PORT">
+          <value>3001</value>
+        </variable>
+        <variable name="ixplora_ENVIRONMENT">
+          <value>testing</value>
+        </variable>
+        <variable name="ixplora_CORS">
+          <value>true</value>
+        </variable>
+        <variable name="ixplora_LOG_LEVEL">
+          <value>error</value>
+        </variable>
+        <variable name="ixplora_LOGS">
+          <value>logs.log</value>
+        </variable>
+        <variable name="ixplora_MONGO_USERNAME">
+          <value>ixplora</value>
+        </variable>
+        <variable name="ixplora_MONGO_IP">
+          <value>localhost</value>
+        </variable>
+        <variable name="ixplora_MONGO_PORT">
+          <value>27017</value>
+        </variable>
+        <variable name="ixplora_MONGO_DB_NAME">
+          <value>ixplora</value>
+        </variable>
+        <variable name="ixplora_SMTP_SERVER">
+          <value>smtp.gmail.com</value>
+        </variable>
+        <variable name="ixplora_EMAIL">
+          <value>at04.ixplora@gmail.com</value>
+        </variable>
+        <variable name="ixplora_CASSANDRA_USERNAME">
+          <value>ixplora</value>
+        </variable>
+        <variable name="ixplora_CASSANDRA_PASSWORD">
+          <value>secretixplora</value>
+        </variable>
+        <variable name="ixplora_CASSANDRA_IP">
+          <value>localhost</value>
+        </variable>
+        <variable name="ixplora_CASSANDRA_PORT">
+          <value>7199</value>
+        </variable>
+        <variable name="ixplora_CASSANDRA_KEYSPACE">
+          <value>ixplora</value>
+        </variable>
+        <variable name="ixplora_EMAIL_PASSWORD" secure="true">
+          <encryptedValue>JYS0012aw5buYoiGStpbWQ==</encryptedValue>
+        </variable>
+        <variable name="ixplora_MONGO_PASSWORD" secure="true">
+          <encryptedValue>JYS0012aw5buYoiGStpbWQ==</encryptedValue>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="git@10.28.128.22:marcos.lara/be-service-surveys.git" />
+      </materials>
+      <stage name="Build" cleanWorkingDir="true">
+        <jobs>
+          <job name="Build-Ubuntu">
+            <tasks>
+              <exec command="npm">
+                <arg>install</arg>
+              </exec>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>build-ubuntu</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="Test">
+        <jobs>
+          <job name="Setup-Environment">
+            <tasks>
+              <exec command="cp">
+                <arg>.env.example</arg>
+                <arg>.env</arg>
+                <runif status="passed" />
+              </exec>
+              <task>
+                <pluginConfiguration id="script-executor" version="1" />
+                <configuration>
+                  <property>
+                    <key>script</key>
+                    <value>params=($(printenv | grep ixplora_ | cut -d= -f1))&#xD;
+&#xD;
+for e in "${params[@]}"&#xD;
+do&#xD;
+  key=$(echo $e | cut -d_ -f2-)&#xD;
+  sed -i "s/{$key}/${!e}/g" .env&#xD;
+done</value>
+                  </property>
+                  <property>
+                    <key>shtype</key>
+                    <value>bash</value>
+                  </property>
+                </configuration>
+                <runif status="passed" />
+              </task>
+              <task>
+                <pluginConfiguration id="script-executor" version="1" />
+                <configuration>
+                  <property>
+                    <key>script</key>
+                    <value>NODE_ENV=test</value>
+                  </property>
+                  <property>
+                    <key>shtype</key>
+                    <value>bash</value>
+                  </property>
+                </configuration>
+                <runif status="passed" />
+              </task>
+            </tasks>
+          </job>
+          <job name="Run-Tests">
+            <tasks>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>test</arg>
+              </exec>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>test-coverage</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <tabs>
+              <tab name="Test-Report" path="test-report/mochawesome.html" />
+              <tab name="Coverage-Report" path="test-coverage-report/index.html" />
+            </tabs>
+            <artifacts>
+              <artifact src="mochawesome-report/*" dest="test-report/" />
+              <artifact src="coverage/*" dest="test-coverage-report/" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="CodeQuality">
+        <jobs>
+          <job name="Sonarqube">
+            <tasks>
+              <task>
+                <pluginConfiguration id="script-executor" version="1" />
+                <configuration>
+                  <property>
+                    <key>script</key>
+                    <value>. /etc/environment&#xD;
+sonar-scanner -Dsonar.projectKey=org.fundacionjala.devops:ixplora-ci -Dsonar.projectName=be-service-surveys -Dsonar.projectVersion=0.8.2 -Dsonar.sources=./src/app -Dsonar.tests=./src/app.tests</value>
+                  </property>
+                  <property>
+                    <key>shtype</key>
+                    <value>bash</value>
+                  </property>
+                </configuration>
+                <runif status="passed" />
+              </task>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="Package">
+        <jobs>
+          <job name="Prepare-Build-Files">
+            <tasks>
+              <exec command="cp">
+                <arg>package.json</arg>
+                <arg>build/</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="cp">
+                <arg>README.md</arg>
+                <arg>build/</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="cp">
+                <arg>.service.info</arg>
+                <arg>build/</arg>
+                <runif status="passed" />
+              </exec>
+              <task>
+                <pluginConfiguration id="script-executor" version="1" />
+                <configuration>
+                  <property>
+                    <key>script</key>
+                    <value>export VERSION=$(cat package.json | jq -r .version)</value>
+                  </property>
+                  <property>
+                    <key>shtype</key>
+                    <value>bash</value>
+                  </property>
+                </configuration>
+                <runif status="passed" />
+              </task>
+              <task>
+                <pluginConfiguration id="script-executor" version="1" />
+                <configuration>
+                  <property>
+                    <key>script</key>
+                    <value>sed -i "s/{BuildVersion}/$VERSION/g" build/.service.info</value>
+                  </property>
+                  <property>
+                    <key>shtype</key>
+                    <value>bash</value>
+                  </property>
+                </configuration>
+                <runif status="passed" />
+              </task>
+              <exec command="cp">
+                <arg>.env</arg>
+                <arg>build/</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+          <job name="Distribution">
+            <tasks>
+              <task>
+                <pluginConfiguration id="script-executor" version="1" />
+                <configuration>
+                  <property>
+                    <key>script</key>
+                    <value>tar -czvf be-service-surveys.tar.gz build/</value>
+                  </property>
+                  <property>
+                    <key>shtype</key>
+                    <value>bash</value>
+                  </property>
+                </configuration>
+              </task>
+            </tasks>
+            <artifacts>
+              <artifact src="be-service-surveys.tar.gz" dest="distribution/" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+  <agents>
+    <agent hostname="759d21619df2" ipaddress="172.18.0.3" uuid="04c24f64-5375-4ef7-b2c4-1ee5c4596807" />
+  </agents>
+</cruise>
