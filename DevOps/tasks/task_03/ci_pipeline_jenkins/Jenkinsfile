@@ -1,0 +1,67 @@
+pipeline {
+  agent 'any'
+  environment {
+    ixplora_PORT = '3000'
+    ixplora_ENVIRONMENT = 'testing'
+    ixplora_CORS = 'true'
+    ixplora_LOG_LEVEL = 'error'
+    ixplora_LOGS = 'logs.log'
+    ixplora_SMTP_SERVER = 'smtp.gmail.com'
+    ixplora_EMAIL = 'at04.ixplora@gmail.com'
+  }
+  stages {
+    stage('Build') {
+      steps {
+        sh 'npm install'
+        sh 'npm run build-ubuntu'
+      }
+    }
+    stage('Test') {
+      steps {
+        sh 'cp .env.example .env'
+        sh '''#!/bin/bash
+                params=($(printenv | grep ixplora_ | cut -d= -f1))
+                for e in "${params[@]}"
+                do
+                  key=$(echo $e | cut -d_ -f2-)
+                  sed -i "s/{$key}/${!e}/g" .env
+                done
+        '''
+        sh 'NODE_ENV=test'
+        sh 'npm run test'
+        publishHTML target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: false,
+          keepAll: true,
+          reportDir: 'mochawesome-report/',
+          reportFiles: 'mochawesome.html',
+          reportName: 'Tests Report'
+        ]
+        sh 'npm run test-coverage'
+        publishHTML target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: false,
+          keepAll: true,
+          reportDir: 'coverage/',
+          reportFiles: 'index.html',
+          reportName: 'Tests Coverage Report'
+        ]
+      }
+    }
+    stage('CodeQuality') {
+        sh 'sonar-scanner -Dsonar.projectKey=org.fundacionjala.devops:ixplora-ci -Dsonar.projectName=be-service-surveys -Dsonar.projectVersion=0.8.2 -Dsonar.sources=./src/app -Dsonar.tests=./src/app.tests'
+    }
+    stage('Package') {
+      steps {
+        sh 'cp package.json build/'
+        sh 'cp README.md build/'
+        sh 'cp .service.info build/'
+        sh 'export VERSION=$(cat package.json | jq -r .version)'
+        sh 'sed -i "s/{BuildVersion}/$VERSION/g" build/.service.info'
+        sh 'cp .env build/'
+        sh 'tar -czvf be-service-surveys.tar.gz build/'
+        archiveArtifacts 'be-service-surveys.tar.gz'
+      }
+    }
+  }
+}
